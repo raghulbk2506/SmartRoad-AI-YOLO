@@ -1,0 +1,1 @@
+const v=document.querySelector('#v'),p=document.querySelector('#p'),c=document.querySelector('#c');document.querySelector('#btn').onclick=()=>{let n=10+Math.floor(Math.random()*30);v.textContent=n;p.textContent=Math.max(1,20-n);c.textContent=n>=25?'HIGH':n>=17?'MEDIUM':'LOW'};
