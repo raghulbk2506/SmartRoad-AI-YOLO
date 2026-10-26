@@ -1,15 +1,12 @@
-"""Central configuration for the SmartRoad AI prototype."""
+"""Central configuration defaults for SmartRoad AI."""
+from dataclasses import dataclass
 
-VEHICLE_CLASSES = {"car", "motorcycle", "bus", "truck"}
+@dataclass(frozen=True)
+class DetectionConfig:
+    confidence_threshold: float = 0.35
+    vehicle_classes: tuple[str, ...] = ("car", "motorcycle", "bus", "truck")
+    congestion_low_max: int = 5
+    congestion_medium_max: int = 12
+    parking_zone: tuple[int, int, int, int] | None = None
 
-# Prototype thresholds; calibrate with local traffic data before real deployment.
-CONGESTION_LOW = 8
-CONGESTION_HIGH = 18
-
-# Parking-zone configuration as a fraction of frame height.
-PARKING_ZONE_TOP_RATIO = 0.72
-
-# A vehicle must remain near the same position for this many frames
-# before the optional stationary-vehicle logic flags it.
-STATIONARY_FRAMES = 20
-POSITION_TOLERANCE_PX = 45
+DEFAULT_CONFIG = DetectionConfig()

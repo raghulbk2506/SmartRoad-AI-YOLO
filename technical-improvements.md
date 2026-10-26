@@ -1,28 +1,19 @@
-# Technical Improvements Added in Review Stage
+# Technical Improvements — Next Review
 
-The review-stage implementation adds modular code for better maintainability
-and future validation.
+- Centralized detection configuration defaults.
+- Added a lightweight centroid tracking foundation.
+- Added reusable congestion classification and summary helpers.
+- Added standard-library unit tests.
 
-## 1. Central configuration
-`ai/config.py` moves vehicle classes, congestion thresholds and parking-zone
-parameters into one place. This makes calibration easier without editing the
-core detection logic.
+## Limitations
+- The centroid tracker is a basic nearest-neighbour baseline and can lose identities when objects overlap or cross.
+- It is not yet wired into the original detection pipeline.
+- Congestion thresholds are example values and need calibration on representative footage.
+- Repeated per-frame detections are not unique vehicle counts unless tracking-aware aggregation is implemented.
+- Detection inside a parking zone does not prove illegal parking or stationary duration.
 
-## 2. Persistent vehicle IDs
-`ai/centroid_tracker.py` adds a lightweight nearest-centroid tracker. It can
-associate detections across frames and provides a foundation for determining
-whether a vehicle remains stationary.
-
-## 3. Reusable analytics
-`ai/analytics.py` separates congestion classification and summary calculations
-from video-processing code.
-
-## 4. Automated checks
-`ai/test_analytics.py` contains basic tests for congestion levels and summary
-statistics.
-
-## 5. Responsible interpretation
-The project does not claim that zone occupancy automatically means illegal
-parking. Real deployment would require calibrated camera geometry, robust
-tracking, stationary-duration thresholds, privacy controls and validation
-with representative road footage.
+## Validation checklist
+1. Run the unit tests.
+2. Test on representative road footage.
+3. Record false positives and missed detections.
+4. Collect and document actual feedback from at least three real users.

@@ -1,65 +1,46 @@
-"""Lightweight centroid tracker for the SmartRoad AI prototype.
-
-This tracker assigns persistent IDs using nearest-centroid matching.
-It is intentionally simple and dependency-light; it is not a production
-multi-object tracker.
-"""
-
-import math
-
+"""Basic nearest-centroid tracker foundation; not a production tracker."""
+from math import hypot
 
 class CentroidTracker:
-    def __init__(self, max_distance=70, max_missing=10):
+    def __init__(self, max_distance=60.0, max_missing=8):
+        if max_distance <= 0 or max_missing < 0:
+            raise ValueError("max_distance must be positive and max_missing non-negative")
+        self.max_distance = float(max_distance)
+        self.max_missing = int(max_missing)
         self.next_id = 1
         self.objects = {}
         self.missing = {}
-        self.max_distance = max_distance
-        self.max_missing = max_missing
 
     @staticmethod
-    def _centroid(box):
+    def _center(box):
         x1, y1, x2, y2 = box
-        return ((x1 + x2) // 2, (y1 + y2) // 2)
+        return ((float(x1) + float(x2)) / 2, (float(y1) + float(y2)) / 2)
 
     def update(self, boxes):
-        centers = [self._centroid(b) for b in boxes]
-
-        if not self.objects:
-            for center in centers:
-                self.objects[self.next_id] = center
-                self.missing[self.next_id] = 0
+        centers = [self._center(b) for b in boxes]
+        candidates = []
+        for oid, old in self.objects.items():
+            for i, center in enumerate(centers):
+                d = hypot(center[0] - old[0], center[1] - old[1])
+                if d <= self.max_distance:
+                    candidates.append((d, oid, i))
+        candidates.sort()
+        result, used_ids, used_indices = {}, set(), set()
+        for _, oid, i in candidates:
+            if oid not in used_ids and i not in used_indices:
+                result[oid] = centers[i]
+                used_ids.add(oid)
+                used_indices.add(i)
+        for i, center in enumerate(centers):
+            if i not in used_indices:
+                result[self.next_id] = center
                 self.next_id += 1
-            return dict(self.objects)
-
-        assigned = set()
-        updated = {}
-
-        # Greedy nearest-neighbour matching.
-        for object_id, old_center in list(self.objects.items()):
-            best_idx, best_dist = None, float("inf")
-            for idx, center in enumerate(centers):
-                if idx in assigned:
-                    continue
-                dist = math.hypot(center[0] - old_center[0],
-                                  center[1] - old_center[1])
-                if dist < best_dist:
-                    best_idx, best_dist = idx, dist
-
-            if best_idx is not None and best_dist <= self.max_distance:
-                updated[object_id] = centers[best_idx]
-                self.missing[object_id] = 0
-                assigned.add(best_idx)
-            else:
-                self.missing[object_id] = self.missing.get(object_id, 0) + 1
-                if self.missing[object_id] <= self.max_missing:
-                    updated[object_id] = old_center
-
-        for idx, center in enumerate(centers):
-            if idx not in assigned:
-                updated[self.next_id] = center
-                self.missing[self.next_id] = 0
-                self.next_id += 1
-
-        self.objects = updated
-        self.missing = {k: v for k, v in self.missing.items() if k in updated}
+        new_missing = {}
+        for oid, old_center in self.objects.items():
+            if oid not in used_ids:
+                count = self.missing.get(oid, 0) + 1
+                if count <= self.max_missing:
+                    new_missing[oid] = count
+                    result[oid] = old_center
+        self.objects, self.missing = result, new_missing
         return dict(self.objects)

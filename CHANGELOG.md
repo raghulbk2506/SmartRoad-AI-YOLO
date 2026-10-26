@@ -1,11 +1,5 @@
-# Changelog
+# Changelog — Next Review
 
-## Review-stage enhancement
-- Added centralized AI configuration.
-- Added lightweight centroid tracking foundation.
-- Added reusable traffic analytics.
-- Added automated analytics tests.
-- Added technical-improvements documentation.
+Added centralized settings, a centroid-tracker foundation, congestion/summary helpers, unit tests, and technical-improvement notes.
 
-These changes should be committed to GitHub as a new review-stage commit
-after uploading them.
+These files are prepared for review and are not automatically integrated into the original `ai/detect.py` pipeline.

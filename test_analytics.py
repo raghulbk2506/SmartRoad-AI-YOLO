@@ -1,20 +1,23 @@
-from analytics import congestion_level, summarize_counts
+import unittest
+from analytics import build_summary, classify_congestion
 
-
-def test_congestion_levels():
-    assert congestion_level(3, 8, 18) == "LOW"
-    assert congestion_level(10, 8, 18) == "MEDIUM"
-    assert congestion_level(20, 8, 18) == "HIGH"
-
-
-def test_summary():
-    result = summarize_counts([2, 4, 6])
-    assert result["frames"] == 3
-    assert result["average_vehicle_count"] == 4
-    assert result["peak_vehicle_count"] == 6
-
+class AnalyticsTests(unittest.TestCase):
+    def test_thresholds(self):
+        self.assertEqual(classify_congestion(5), "LOW")
+        self.assertEqual(classify_congestion(6), "MEDIUM")
+        self.assertEqual(classify_congestion(12), "MEDIUM")
+        self.assertEqual(classify_congestion(13), "HIGH")
+    def test_custom_thresholds(self):
+        self.assertEqual(classify_congestion(3, 2, 4), "MEDIUM")
+    def test_negative_count(self):
+        with self.assertRaises(ValueError):
+            classify_congestion(-1)
+    def test_summary(self):
+        self.assertEqual(build_summary(20, 7, "medium"),
+                         {"frame_count": 20, "vehicle_count": 7, "congestion": "MEDIUM"})
+    def test_invalid_summary(self):
+        with self.assertRaises(ValueError):
+            build_summary(-1, 0, "LOW")
 
 if __name__ == "__main__":
-    test_congestion_levels()
-    test_summary()
-    print("All SmartRoad AI analytics tests passed.")
+    unittest.main()
